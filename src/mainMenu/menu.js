@@ -10,7 +10,7 @@ export class Menu extends Phaser.Scene {
   }
 
   preload() {
-    this.load.audio("menuMusic", "sounds/Soundtrack.ogg");
+    this.load.audio("menuMusic", "sounds/Soundtrack.mp3");
 
     let graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
