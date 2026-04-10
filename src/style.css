@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+/* Estilos globais para o menu principal e o jogo */
+
+.menu-btn {
+  @apply text-cyan-50/60 text-xl tracking-widest uppercase py-2 px-8 transition-all duration-500 border-l border-transparent hover:border-cyan-400 hover:text-cyan-300 hover:pl-12;
+}
+
+/* Estilos para o modo de tela cheia do jogo */
+
+#app:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  background-color: #050505;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Garantir que o canvas do jogo se ajuste corretamente em tela cheia, mantendo a proporção e centralizado */
+
+#app:fullscreen #game-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+}
