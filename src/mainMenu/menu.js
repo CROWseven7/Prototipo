@@ -86,7 +86,7 @@ export class Menu extends Phaser.Scene {
 
       <h1 class="text-6xl font-thin text-cyan-100 tracking-[1.5rem] mb-20 opacity-80 uppercase italic">
 
-        SEM NOME
+        FRAGMENTOS DO LAR
 
       </h1>
 
