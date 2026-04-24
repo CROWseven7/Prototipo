@@ -1,9 +1,13 @@
 import "./style.css";
 import Phaser from "phaser";
+import { GameUI } from "./ui/GameUI.js";
 
-import { Menu } from "./mainMenu/menu";
-import { Tutorial } from "./scenes/tutorial";
-import { Ranking } from "./mainMenu/ranking/ranking";
+import { Menu }     from "./mainMenu/menu";
+import { Tutorial } from "./scenes/Tutorial/tutorial";
+import { Ranking }  from "./mainMenu/ranking/ranking";
+
+// Instancia UI global uma única vez — exposta para as cenas via window.GameUI
+window.GameUI = new GameUI();
 
 const config = {
   type: Phaser.AUTO,
@@ -15,8 +19,8 @@ const config = {
   physics: {
     default: "arcade",
     arcade: {
-      gravity: { y: 1500 },
-      debug: true,
+      gravity: { y: 2000 },
+      debug: false,
     },
   },
   scale: {

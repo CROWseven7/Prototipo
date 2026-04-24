@@ -1,26 +1,199 @@
 @import "tailwindcss";
 
-/* Estilos globais para o menu principal e o jogo */
+/* ─────────────────────────────────────────────────────────
+   FRAGMENTOS DO LAR — Global Styles
+   Paleta: tons de cinza, sépia fria, preto profundo
+   Fonte display: Cormorant Garamond (elegância melancólica)
+   Fonte mono: Courier Prime (diários, anotações)
+───────────────────────────────────────────────────────── */
 
-.menu-btn {
-  @apply text-cyan-50/60 text-xl tracking-widest uppercase py-2 px-8 transition-all duration-500 border-l border-transparent hover:border-cyan-400 hover:text-cyan-300 hover:pl-12;
+:root {
+  --color-ink:      #0a0a0c;
+  --color-ash:      #1a1a20;
+  --color-fog:      #2e2e38;
+  --color-dust:     #5a5a6a;
+  --color-bone:     #a8a49e;
+  --color-vellum:   #c8c4be;
+  --color-paper:    #e8e4de;
+  --color-accent:   #7a9e8a;
+  --color-accent2:  #8a7a6a;
+
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-mono:    'Courier Prime', 'Courier New', monospace;
 }
 
-/* Estilos para o modo de tela cheia do jogo */
+/* ── Reset base ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
-#app:fullscreen {
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--color-ink);
   width: 100vw;
   height: 100vh;
-  background-color: #050505;
+}
+
+/* ── Cursor padrão: bolinha sutil (Melhoria 2) ──────────── */
+/* O GameUI._injectStyles() já aplica via JS para garantir
+   precedência sobre estilos do Phaser/browser.
+   Aqui fica como fallback e base. */
+* {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Ccircle cx='7' cy='7' r='3.5' fill='%23a8a49e' opacity='0.85'/%3E%3C/svg%3E") 7 7, default;
+}
+
+/* Elementos clicáveis: bolinha maior e mais branca (Melhoria 2) */
+button,
+[role="button"],
+a,
+input[type="range"],
+label,
+.menu-btn,
+.icon-btn {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='10' cy='10' r='6' fill='%23e8e4de' opacity='0.9'/%3E%3C/svg%3E") 10 10, pointer;
+}
+
+/* ── Animações globais ──────────────────────────────────── */
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.5; transform: scaleX(1); }
+  50%       { opacity: 0.9; transform: scaleX(1.04); }
+}
+
+@keyframes flicker {
+  0%, 95%, 100% { opacity: 1; }
+  96%           { opacity: 0.85; }
+  98%           { opacity: 0.92; }
+}
+
+/* ── Menu principal ─────────────────────────────────────── */
+#main-menu-ui {
+  font-family: var(--font-display);
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Botões de navegação do menu */
+.menu-btn {
+  position: relative;
+  display: block;
+  width: 280px;
+  padding: 14px 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  color: var(--color-dust);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+  transition:
+    color 0.4s ease,
+    letter-spacing 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.4s ease;
+}
+
+.menu-btn::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--color-bone), transparent);
+  transform: translateX(-50%);
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.menu-btn:hover {
+  color: var(--color-vellum);
+  letter-spacing: 0.32em;
+}
+
+.menu-btn:hover::before {
+  width: 80%;
+}
+
+.menu-btn:active {
+  color: var(--color-paper);
+  transform: translateY(1px);
+}
+
+/* "Voltar ao Menu" — tom avermelhado apagado para distinguir do Continuar (Melhoria 6) */
+.menu-btn--danger {
+  color: #4a3a3a;
+}
+.menu-btn--danger:hover {
+  color: #a87a7a;
+}
+
+/* Botões de ícone (fullscreen, mute) */
+.icon-btn {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid rgba(90, 90, 106, 0.3);
+  border-radius: 50%;
+  color: var(--color-dust);
+  transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+  outline: none;
 }
 
-/* Garantir que o canvas do jogo se ajuste corretamente em tela cheia, mantendo a proporção e centralizado */
+.icon-btn:hover {
+  color: var(--color-bone);
+  border-color: rgba(168, 164, 158, 0.5);
+  background: rgba(168, 164, 158, 0.05);
+}
 
-#app:fullscreen #game-container canvas {
+/* ── Tela cheia ─────────────────────────────────────────── */
+:fullscreen #app,
+:-webkit-full-screen #app {
+  width: 100vw;
+  height: 100vh;
+}
+
+:fullscreen #game-container canvas,
+:-webkit-full-screen #game-container canvas {
   width: 100% !important;
   height: 100% !important;
   object-fit: contain;
+}
+
+/* ── Scrollbar discreta ─────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--color-ink); }
+::-webkit-scrollbar-thumb { background: var(--color-fog); border-radius: 2px; }
+
+/* ── Utilitários ────────────────────────────────────────── */
+.hidden { display: none !important; }
+
+/* ── Phaser canvas (Bug 3: suporta filter de saturação) ── */
+#game-container canvas {
+  display: block;
+  /* A transição suaviza a aplicação do filtro saturate(0) */
+  transition: filter 0.6s ease;
 }

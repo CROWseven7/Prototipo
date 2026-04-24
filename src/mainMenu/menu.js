@@ -3,233 +3,134 @@ import Phaser from "phaser";
 export class Menu extends Phaser.Scene {
   constructor() {
     super({ key: "MainMenu" });
-
     this.backgroundMusic = null;
-
     this.maxVolume = 0.5;
   }
 
   preload() {
     this.load.audio("menuMusic", "sounds/Soundtrack.mp3");
 
+    // Textura de partícula: retângulo branco simples
     let graphics = this.make.graphics({ x: 0, y: 0, add: false });
-
     graphics.fillStyle(0xffffff, 1);
-
     graphics.fillRect(0, 0, 2, 12);
-
     graphics.generateTexture("spark", 2, 12);
   }
 
   create() {
     const { width, height } = this.scale;
+    const ui = window.GameUI;
 
-    if (!this.sound.get("menuMusic")) {
-      this.backgroundMusic = this.sound.add("menuMusic", {
-        loop: true,
-
-        volume: 0,
-      });
-
+    // ── Música (Bug 2) ────────────────────────────────────
+    // Ao voltar do jogo, o som pode estar pausado ou sem volume.
+    // Sempre garantimos que toca com fade-in.
+    const existing = this.sound.get("menuMusic");
+    if (!existing) {
+      this.backgroundMusic = this.sound.add("menuMusic", { loop: true, volume: 0 });
       this.backgroundMusic.play();
-
-      this.tweens.add({
-        targets: this.backgroundMusic,
-
-        volume: this.maxVolume,
-
-        duration: 2000,
-      });
     } else {
-      this.backgroundMusic = this.sound.get("menuMusic");
+      this.backgroundMusic = existing;
+      // Bug 2: se estava pausado (voltou do jogo), retoma
+      if (this.backgroundMusic.isPaused) {
+        this.backgroundMusic.resume();
+      } else if (!this.backgroundMusic.isPlaying) {
+        this.backgroundMusic.play();
+      }
+      // Garante volume 0 antes do fade
+      this.backgroundMusic.setVolume(0);
     }
+    this.tweens.add({
+      targets: this.backgroundMusic,
+      volume: this.maxVolume,
+      duration: 2000,
+    });
 
+    // ── Partículas brancas/cinzas (Melhoria 1) ───────────
+    // Substituímos os tints cyan por tons de branco/cinza
     this.add.particles(0, 0, "spark", {
-      emitZone: {
-        type: "random",
-
-        source: new Phaser.Geom.Rectangle(0, 0, width, height),
-      },
-
-      scaleX: 0.5,
-
-      scaleY: 0.5,
-
-      speedY: { min: -50, max: -250 },
-
-      speedX: { min: -50, max: -250 },
-
-      lifespan: { min: 1000, max: 4000 },
-
-      alpha: { start: 1, end: 0 },
-
-      tint: [0x00ffff, 0x0088ff],
-
-      frequency: 20,
-
+      emitZone: { type: "random", source: new Phaser.Geom.Rectangle(0, 0, width, height) },
+      scaleX: 0.5, scaleY: 0.5,
+      speedY: { min: -30, max: -180 },
+      speedX: { min: -30, max: -180 },
+      lifespan: { min: 1500, max: 5000 },
+      alpha: { start: 0.7, end: 0 },
+      // Tons de branco, cinza claro, branco quente — sem ciano
+      tint: [0xffffff, 0xd0d0d0, 0xe8e4de, 0xb0b0b8],
+      frequency: 25,
       blendMode: "ADD",
     });
 
-    this.renderMainMenuUI();
+    // ── Remove filtro de saturação (caso venha do jogo) ──
+    ui.removeDesaturation();
 
-    this.setupMenuButtons();
+    // ── UI ───────────────────────────────────────────────
+    ui.hidePauseTrigger();
+    ui.showMenu();
 
-    this.setupGlobalButtons();
+    // Remove label de modo de jogo
+    ui.setGameMode("");
+
+    // ── Eventos ───────────────────────────────────────────
+    // Limpa listeners anteriores para evitar duplicatas
+    ui.on("menuAction",    (action) => this._onMenuAction(action));
+    ui.on("muteToggle",    (muted)  => this._onMuteToggle(muted));
+    ui.on("volumeChange",  (v)      => this._onVolumeChange(v));
   }
 
-  renderMainMenuUI() {
-    const menuUI = document.getElementById("main-menu-ui");
+  _onMenuAction(action) {
+    let sceneKey  = "";
+    let sceneData = {};
 
-    if (!menuUI) return;
+    if      (action === "singleplayer") { sceneKey = "Tutorial"; sceneData = { multiplayer: false }; }
+    else if (action === "multiplayer")  { sceneKey = "Tutorial"; sceneData = { multiplayer: true };  }
+    else if (action === "ranking")      { sceneKey = "Ranking"; }
+    else if (action === "options")      { console.log("Configurações em breve"); return; }
 
-    menuUI.innerHTML = `
+    if (!sceneKey) return;
 
-      <h1 class="text-6xl font-thin text-cyan-100 tracking-[1.5rem] mb-20 opacity-80 uppercase italic">
+    window.GameUI.hideMenu();
 
-        FRAGMENTOS DO LAR
+    const go = () => this.scene.start(sceneKey, sceneData);
 
-      </h1>
-
-
-
-      <nav class="flex flex-col gap-6 pointer-events-auto">
-
-        <button class="menu-btn">Single Player</button>
-
-        <button class="menu-btn">Multiplayer Coop</button>
-
-        <button class="menu-btn">Ranking</button>
-
-        <button class="menu-btn">Opções</button>
-
-      </nav>
-
-    `;
+    if (this.backgroundMusic?.isPlaying) {
+      this.tweens.add({
+        targets: this.backgroundMusic,
+        volume: 0,
+        duration: 500,
+        onComplete: go,
+      });
+    } else {
+      go();
+    }
   }
 
-  setupGlobalButtons() {
-    const muteBtn = document.getElementById("mute-btn");
-
-    const fullscreenBtn = document.getElementById("fullscreen-btn");
-
-    const appContainer = document.getElementById("app");
-
-    if (!muteBtn) return;
-
-    muteBtn.dataset.muted = "false";
-
-    muteBtn.style.opacity = "1";
-
-    muteBtn.onclick = (e) => {
-      e.preventDefault();
-
-      e.stopPropagation();
-
-      if (this.sound.context.state === "suspended") {
-        this.sound.context.resume();
-      }
-
-      const isCurrentlyMuted = muteBtn.dataset.muted === "true";
-
-      const nextMuteState = !isCurrentlyMuted;
-
-      muteBtn.dataset.muted = nextMuteState.toString();
-
-      muteBtn.style.setProperty(
-        "opacity",
-
-        nextMuteState ? "0.3" : "1",
-
-        "important",
-      );
-
-      if (this.backgroundMusic) {
-        this.tweens.killTweensOf(this.backgroundMusic);
-
-        if (nextMuteState) {
-          this.tweens.add({
-            targets: this.backgroundMusic,
-
-            volume: 0,
-
-            duration: 1000,
-
-            onComplete: () => {
-              if (muteBtn.dataset.muted === "true")
-                this.backgroundMusic.pause();
-            },
-          });
-        } else {
-          if (this.backgroundMusic.isPaused) this.backgroundMusic.resume();
-
-          if (!this.backgroundMusic.isPlaying) this.backgroundMusic.play();
-
-          this.tweens.add({
-            targets: this.backgroundMusic,
-
-            volume: this.maxVolume,
-
-            duration: 1000,
-          });
-        }
-      }
-    };
-
-    fullscreenBtn.onclick = (e) => {
-      e.preventDefault();
-
-      if (!document.fullscreenElement) {
-        appContainer.requestFullscreen();
-
-        fullscreenBtn.style.opacity = "0.3";
-      } else {
-        document.exitFullscreen();
-
-        fullscreenBtn.style.opacity = "1";
-      }
-    };
+  _onMuteToggle(muted) {
+    if (!this.backgroundMusic) return;
+    this.tweens.killTweensOf(this.backgroundMusic);
+    if (muted) {
+      this.tweens.add({
+        targets: this.backgroundMusic,
+        volume: 0,
+        duration: 1000,
+        onComplete: () => {
+          if (window.GameUI.isMuted) this.backgroundMusic.pause();
+        },
+      });
+    } else {
+      if (this.backgroundMusic.isPaused) this.backgroundMusic.resume();
+      if (!this.backgroundMusic.isPlaying) this.backgroundMusic.play();
+      this.tweens.add({
+        targets: this.backgroundMusic,
+        volume: this.maxVolume,
+        duration: 1000,
+      });
+    }
   }
 
-  setupMenuButtons() {
-    const menuButtons = document.querySelectorAll("#main-menu-ui .menu-btn");
-    const menuUI = document.getElementById("main-menu-ui");
-
-    menuButtons.forEach((btn) => {
-      btn.onclick = () => {
-        const buttonText = btn.innerText.toLowerCase();
-
-        let sceneKey = "";
-        let sceneData = {};
-
-        if (buttonText === "single player") {
-          sceneKey = "Tutorial";
-          sceneData = { multiplayer: false };
-        } else if (buttonText === "multiplayer coop") {
-          sceneKey = "Tutorial";
-          sceneData = { multiplayer: true };
-        } else if (buttonText === "ranking") {
-          sceneKey = "Ranking";
-        }
-
-        if (sceneKey !== "") {
-          if (menuUI) menuUI.style.display = "none";
-
-          if (this.backgroundMusic && this.backgroundMusic.isPlaying) {
-            this.tweens.add({
-              targets: this.backgroundMusic,
-              volume: 0,
-              duration: 500,
-              onComplete: () => {
-                this.scene.start(sceneKey, sceneData);
-              },
-            });
-          } else {
-            this.scene.start(sceneKey, sceneData);
-          }
-        } else if (buttonText === "opções") {
-          console.log("Configurações em breve");
-        }
-      };
-    });
+  _onVolumeChange(v) {
+    this.maxVolume = v;
+    if (this.backgroundMusic && !window.GameUI.isMuted) {
+      this.backgroundMusic.setVolume(v);
+    }
   }
 }
