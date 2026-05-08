@@ -1,28 +1,28 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────
-   FRAGMENTOS DO LAR — Global Styles
-   Paleta: tons de cinza, sépia fria, preto profundo
-   Fonte display: Cormorant Garamond (elegância melancólica)
-   Fonte mono: Courier Prime (diários, anotações)
+   FRAGMENTOS DO LAR — Estilos globais consolidados
+   Fonte única de verdade para CSS.
+   GameUI.js não injeta mais estilos via JS.
 ───────────────────────────────────────────────────────── */
 
 :root {
-  --color-ink:      #0a0a0c;
-  --color-ash:      #1a1a20;
-  --color-fog:      #2e2e38;
-  --color-dust:     #5a5a6a;
-  --color-bone:     #a8a49e;
-  --color-vellum:   #c8c4be;
-  --color-paper:    #e8e4de;
-  --color-accent:   #7a9e8a;
-  --color-accent2:  #8a7a6a;
+  --color-ink:    #0a0a0c;
+  --color-ash:    #1a1a20;
+  --color-fog:    #2e2e38;
+  --color-dust:   #5a5a6a;
+  --color-bone:   #a8a49e;
+  --color-vellum: #c8c4be;
+  --color-paper:  #e8e4de;
+  --color-accent:  #7a9e8a;
+  --color-accent2: #8a7a6a;
 
   --font-display: 'Cormorant Garamond', Georgia, serif;
   --font-mono:    'Courier Prime', 'Courier New', monospace;
 }
 
-/* ── Reset base ─────────────────────────────────────────── */
+/* ── Reset ──────────────────────────────────────────────── */
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body {
@@ -34,64 +34,151 @@ html, body {
   height: 100vh;
 }
 
-/* ── Cursor padrão: bolinha sutil (Melhoria 2) ──────────── */
-/* O GameUI._injectStyles() já aplica via JS para garantir
-   precedência sobre estilos do Phaser/browser.
-   Aqui fica como fallback e base. */
+/* ── Cursor customizado ──────────────────────────────────── */
+
 * {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Ccircle cx='7' cy='7' r='3.5' fill='%23a8a49e' opacity='0.85'/%3E%3C/svg%3E") 7 7, default;
 }
 
-/* Elementos clicáveis: bolinha maior e mais branca (Melhoria 2) */
-button,
-[role="button"],
-a,
-input[type="range"],
-label,
-.menu-btn,
-.icon-btn {
+button, [role="button"], a, input[type="range"], label {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='10' cy='10' r='6' fill='%23e8e4de' opacity='0.9'/%3E%3C/svg%3E") 10 10, pointer;
 }
 
-/* ── Animações globais ──────────────────────────────────── */
+/* ── Animações globais ───────────────────────────────────── */
+
 @keyframes fadeSlideDown {
   from { opacity: 0; transform: translateY(-24px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-
-@keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-
 @keyframes breathe {
   0%, 100% { opacity: 0.5; transform: scaleX(1); }
   50%       { opacity: 0.9; transform: scaleX(1.04); }
 }
-
 @keyframes flicker {
   0%, 95%, 100% { opacity: 1; }
   96%           { opacity: 0.85; }
   98%           { opacity: 0.92; }
 }
 
-/* ── Menu principal ─────────────────────────────────────── */
+/* ── Menu principal ──────────────────────────────────────── */
+
 #main-menu-ui {
-  font-family: var(--font-display);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
   transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: radial-gradient(ellipse at center bottom, rgba(10,10,18,0.3) 0%, rgba(0,0,0,0.85) 100%);
+  pointer-events: none;
+  z-index: 100;
+  font-family: var(--font-display);
 }
 
-/* Botões de navegação do menu */
+.menu-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.4;
+}
+
+.menu-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.8);
+}
+
+.menu-title-block {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 4rem;
+  animation: fadeSlideDown 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.menu-title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 7vw, 6.5rem);
+  font-weight: 300;
+  color: var(--color-vellum);
+  letter-spacing: 0.25em;
+  line-height: 1;
+  margin: 0;
+  text-align: center;
+  text-shadow: 0 0 80px rgba(180, 170, 160, 0.15);
+}
+
+.menu-subtitle {
+  font-style: italic;
+  font-size: 0.65em;
+  letter-spacing: 0.4em;
+  color: var(--color-dust);
+}
+
+.menu-divider {
+  margin-top: 1.5rem;
+  width: 120px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(180, 170, 160, 0.4), transparent);
+}
+
+#menu-nav {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: auto;
+  animation: fadeSlideUp 2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+  opacity: 0;
+}
+
+.menu-bottom-bar {
+  position: absolute;
+  bottom: 2rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 2.5rem;
+  z-index: 10;
+  pointer-events: auto;
+  animation: fadeIn 2.5s ease forwards 1s;
+  opacity: 0;
+}
+
+.menu-version {
+  font-size: 0.7rem;
+  color: #3a3a48;
+  font-family: var(--font-mono);
+  letter-spacing: 0.3em;
+}
+
+.menu-icon-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* ── Botões de menu ──────────────────────────────────────── */
+
 .menu-btn {
   position: relative;
   display: block;
@@ -108,10 +195,7 @@ label,
   text-align: center;
   text-transform: uppercase;
   outline: none;
-  transition:
-    color 0.4s ease,
-    letter-spacing 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.4s ease;
+  transition: color 0.4s ease, letter-spacing 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .menu-btn::before {
@@ -126,29 +210,14 @@ label,
   transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.menu-btn:hover {
-  color: var(--color-vellum);
-  letter-spacing: 0.32em;
-}
+.menu-btn:hover             { color: var(--color-vellum); letter-spacing: 0.32em; }
+.menu-btn:hover::before     { width: 80%; }
+.menu-btn:active            { color: var(--color-paper); transform: translateY(1px); }
+.menu-btn--danger           { color: #4a3a3a; }
+.menu-btn--danger:hover     { color: #a87a7a; }
 
-.menu-btn:hover::before {
-  width: 80%;
-}
+/* ── Botões de ícone ─────────────────────────────────────── */
 
-.menu-btn:active {
-  color: var(--color-paper);
-  transform: translateY(1px);
-}
-
-/* "Voltar ao Menu" — tom avermelhado apagado para distinguir do Continuar (Melhoria 6) */
-.menu-btn--danger {
-  color: #4a3a3a;
-}
-.menu-btn--danger:hover {
-  color: #a87a7a;
-}
-
-/* Botões de ícone (fullscreen, mute) */
 .icon-btn {
   display: flex;
   align-items: center;
@@ -169,7 +238,362 @@ label,
   background: rgba(168, 164, 158, 0.05);
 }
 
-/* ── Tela cheia ─────────────────────────────────────────── */
+/* ── Ícones de mute via data-muted no #app ───────────────── */
+/* Elimina a manipulação manual de style.display em JS */
+
+#app[data-muted="1"] #menu-sound-on,
+#app[data-muted="1"] #pause-sound-on  { display: none; }
+#app[data-muted="0"] #menu-sound-off,
+#app[data-muted="0"] #pause-sound-off { display: none; }
+
+/* Estado inicial (sem atributo) */
+#app:not([data-muted]) #menu-sound-off,
+#app:not([data-muted]) #pause-sound-off { display: none; }
+
+/* ── Menu de pausa ───────────────────────────────────────── */
+
+#pause-menu-ui {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  background: rgba(5, 5, 8, 0.82);
+  backdrop-filter: blur(6px);
+  z-index: 200;
+  pointer-events: auto;
+}
+
+.pause-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  min-width: 320px;
+}
+
+.pause-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.pause-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--color-vellum);
+  letter-spacing: 0.35em;
+}
+
+.pause-divider {
+  width: 80px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(180, 170, 160, 0.35), transparent);
+}
+
+.pause-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.pause-volume-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-dust);
+  letter-spacing: 0.2em;
+  min-width: 50px;
+}
+
+.pause-separator {
+  width: 100%;
+  height: 1px;
+  background: rgba(90, 90, 106, 0.2);
+}
+
+.pause-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+/* ── Botão de pausa (trigger) ────────────────────────────── */
+
+#pause-trigger-btn {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  display: none;
+  background: rgba(10, 10, 14, 0.7);
+  border: 1px solid rgba(90, 90, 106, 0.35);
+  border-radius: 6px;
+  padding: 8px 14px;
+  color: #6a6a7a;
+  outline: none;
+  transition: color 0.3s, border-color 0.3s, background 0.3s;
+  backdrop-filter: blur(4px);
+}
+
+#pause-trigger-btn:hover {
+  color: var(--color-bone);
+  border-color: rgba(138, 138, 154, 0.5);
+  background: rgba(15, 15, 20, 0.85);
+}
+
+/* ── Label de modo de jogo ───────────────────────────────── */
+
+#game-mode-label {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  z-index: 150;
+  display: none;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: #4a4a58;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+/* ── Hint bar ────────────────────────────────────────────── */
+
+#game-hint-bar {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  background: rgba(8, 8, 12, 0.75);
+  border: 1px solid rgba(90, 90, 106, 0.25);
+  border-radius: 8px;
+  padding: 10px 22px;
+  backdrop-filter: blur(6px);
+  transition: opacity 0.3s ease;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.hint-icon {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: #4a4a58;
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+
+.hint-text {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-style: italic;
+  color: var(--color-bone);
+  letter-spacing: 0.08em;
+}
+
+/* ── Label de progresso ──────────────────────────────────── */
+
+#game-progress-label {
+  position: absolute;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  display: none;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 300;
+  font-style: italic;
+  color: #7a7a8a;
+  letter-spacing: 0.3em;
+  text-align: center;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* ── Input range ─────────────────────────────────────────── */
+
+input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 2px;
+  background: linear-gradient(to right, var(--color-dust) 0%, var(--color-dust) 50%, var(--color-fog) 50%, var(--color-fog) 100%);
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-bone);
+  border: 1px solid var(--color-dust);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-bone);
+  border: 1px solid var(--color-dust);
+}
+
+/* ── Ranking ─────────────────────────────────────────────── */
+
+#ranking-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+  animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ranking-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--color-bone);
+  letter-spacing: 0.6rem;
+  text-transform: uppercase;
+  margin: 0 0 0.4rem;
+  opacity: 0.85;
+}
+
+.ranking-divider {
+  width: 140px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--color-fog), transparent);
+  margin-bottom: 1.8rem;
+}
+
+.ranking-tabs {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.6rem;
+}
+
+.ranking-tab {
+  position: relative;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.25rem;
+  text-transform: uppercase;
+  color: var(--color-dust);
+  padding: 4px 0 6px;
+  transition: color 0.35s ease;
+}
+
+.ranking-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--color-bone);
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ranking-tab:hover,
+.ranking-tab.active            { color: var(--color-vellum); }
+.ranking-tab:hover::after,
+.ranking-tab.active::after     { width: 100%; }
+
+#ranking-list {
+  width: 380px;
+  max-height: 260px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-fog) transparent;
+  padding-right: 8px;
+}
+
+.ranking-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(46, 46, 56, 0.6);
+  transition: background 0.2s ease;
+}
+
+.ranking-row:hover { background: rgba(168, 164, 158, 0.03); }
+
+.ranking-row-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ranking-index {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--color-fog);
+  width: 26px;
+  text-align: right;
+}
+
+.ranking-index.gold   { color: #b8986a; }
+.ranking-index.silver { color: var(--color-dust); }
+.ranking-index.bronze { color: #7a6a5a; }
+
+.ranking-name {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 300;
+  letter-spacing: 0.1rem;
+  color: var(--color-bone);
+  text-transform: uppercase;
+}
+
+.ranking-value {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08rem;
+  color: var(--color-dust);
+}
+
+.ranking-status {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.2rem;
+  color: var(--color-dust);
+  text-align: center;
+  padding: 28px 0;
+}
+
+.ranking-status--error { color: var(--color-accent2); }
+
+.ranking-back { margin-top: 2rem; }
+
+/* ── Canvas e fullscreen ─────────────────────────────────── */
+
+#game-container canvas {
+  display: block;
+  transition: filter 0.6s ease;
+}
+
 :fullscreen #app,
 :-webkit-full-screen #app {
   width: 100vw;
@@ -183,17 +607,12 @@ label,
   object-fit: contain;
 }
 
-/* ── Scrollbar discreta ─────────────────────────────────── */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: var(--color-ink); }
-::-webkit-scrollbar-thumb { background: var(--color-fog); border-radius: 2px; }
+/* ── Scrollbar ───────────────────────────────────────────── */
 
-/* ── Utilitários ────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 4px; }
+::-webkit-scrollbar-track  { background: var(--color-ink); }
+::-webkit-scrollbar-thumb  { background: var(--color-fog); border-radius: 2px; }
+
+/* ── Utilitários ─────────────────────────────────────────── */
+
 .hidden { display: none !important; }
-
-/* ── Phaser canvas (Bug 3: suporta filter de saturação) ── */
-#game-container canvas {
-  display: block;
-  /* A transição suaviza a aplicação do filtro saturate(0) */
-  transition: filter 0.6s ease;
-}
